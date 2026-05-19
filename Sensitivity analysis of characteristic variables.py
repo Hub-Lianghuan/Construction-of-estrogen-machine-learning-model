@@ -19,15 +19,6 @@ plt.rcParams["axes.unicode_minus"] = False
 # =========================
 file_path = r"C:\Users\LiangHuan\Desktop\原始数据、特征数据\原始数据合并版本1987.xls"
 
-
-# =========================
-# 2. Target settings by column index
-# =========================
-# 注意：
-# feature_slice = (4, 14) 表示 iloc[:, 4:14]
-# 也就是 Python 索引第 4 到第 13 列，对应 Excel 视觉上的第 5 到第 14 列
-# target_col_index = -2 表示倒数第二列
-
 target_configs = [
     {
         "target_name": "E1浓度(ng/L)",
@@ -105,24 +96,20 @@ def run_single_target_sensitivity(
     print(f"Data shape: {df.shape}")
     print(f"All columns: {df.columns.tolist()}")
 
-    # 按列序号提取特征列和目标变量列
     feature_cols = df.columns[feature_start:feature_end].tolist()
     target_col = df.columns[target_col_index]
 
     print(f"Feature columns used for {target_name}: {feature_cols}")
     print(f"Target column used for {target_name}: {target_col}")
 
-    # 提取数据
+
     data = df[feature_cols + [target_col]].copy()
 
-    # 转换为数值型，不能转换的内容变成 NaN
     for col in feature_cols + [target_col]:
         data[col] = pd.to_numeric(data[col], errors="coerce")
 
-    # 删除目标变量缺失的样本
     data = data.dropna(subset=[target_col])
 
-    # 特征缺失值用均值填补
     X = data[feature_cols].copy()
     X = X.fillna(X.mean())
 
@@ -132,7 +119,6 @@ def run_single_target_sensitivity(
     print(f"Final X shape: {X.shape}")
     print(f"Final y shape: {y.shape}")
 
-    # 训练随机森林模型
     model = RandomForestRegressor(
         n_estimators=n_estimators,
         random_state=random_state,
@@ -141,7 +127,6 @@ def run_single_target_sensitivity(
     )
     model.fit(X, y)
 
-    # 原始预测值
     y_base = model.predict(X)
 
     results = []
@@ -153,17 +138,13 @@ def run_single_target_sensitivity(
         ]:
             X_perturbed = X.copy()
 
-            # 单因素扰动：只改变当前 feature，其他变量保持不变
             X_perturbed[feature] = X_perturbed[feature] * (1 + rate)
 
-            # 如果该变量本身非负，扰动后也限制为非负
             if X[feature].min() >= 0:
                 X_perturbed[feature] = X_perturbed[feature].clip(lower=0)
 
-            # 扰动后的预测结果
             y_perturbed = model.predict(X_perturbed)
 
-            # 扰动前后预测变化
             delta = y_perturbed - y_base
 
             mean_change = np.mean(delta)
@@ -221,8 +202,7 @@ all_results_df = pd.concat(all_results, ignore_index=True)
 
 # =========================
 # 6. Merge +10% and -10% results
-# =========================
-# 对 +10% 和 -10% 的 Sensitivity_Index 取平均
+
 summary_df = (
     all_results_df
     .groupby(["Target", "Feature"], as_index=False)
@@ -234,7 +214,6 @@ summary_df = (
     )
 )
 
-# 提取 +10% 扰动下的方向，用于解释变量增加后的预测响应方向
 plus_df = all_results_df[all_results_df["Perturbation"] == "+10%"].copy()
 
 plus_direction_df = plus_df[[
@@ -347,7 +326,6 @@ ax.set_yticklabels(
     fontweight="bold"
 )
 
-# 格子内添加数值
 for i in range(heatmap_values.shape[0]):
     for j in range(heatmap_values.shape[1]):
         value = heatmap_values[i, j]
