@@ -1,7 +1,4 @@
-"""
-RFE特征选择分析 - 简化版（添加训练集和测试集对比）
-作者：LiangHuan
-"""
+
 import pandas as pd
 import numpy as np
 from sklearn.ensemble import RandomForestRegressor
@@ -13,19 +10,17 @@ import warnings
 
 warnings.filterwarnings('ignore')
 
-# 配置
+
 FILE_PATH = r'C:\Users\LiangHuan\Desktop\原始数据、特征数据\特征数据2.xls'
 SHEET_NAME = 'BEQ-bio(E-SCREEN)'
 
-# 1. 读取数据
+
 print("正在读取数据...")
 df = pd.read_excel(FILE_PATH, sheet_name=SHEET_NAME)
 print(f"数据形状: {df.shape}")
 print(f"列名: {list(df.columns)}")
 
-# 提取特征和目标变量
-# 特征: 第5列到第24列（索引4到23）
-# 目标: 倒数第二列
+
 X = df.iloc[:, 4:24]  # 第5-24列
 y = df.iloc[:, -2]  # 倒数第二列
 
@@ -33,11 +28,10 @@ print(f"\n特征数量: {X.shape[1]}")
 print(f"特征名称: {list(X.columns)}")
 print(f"目标变量: {y.name}")
 
-# 处理缺失值
+
 X = X.fillna(X.mean())
 y = y.fillna(y.mean())
 
-# 2. 分割数据
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=42
 )
@@ -46,7 +40,6 @@ print(f"\n数据分割情况:")
 print(f"训练集样本数: {X_train.shape[0]}")
 print(f"测试集样本数: {X_test.shape[0]}")
 
-# 3. RFECV自动确定最优特征数量
 print("\n" + "=" * 60)
 print("RFECV自动确定最优特征数量...")
 
@@ -72,18 +65,16 @@ print(f"\n自动选中的特征 ({len(selected_features_auto)}个):")
 for i, feat in enumerate(selected_features_auto, 1):
     print(f"  {i}. {feat}")
 
-# 4. 手动选择特征数量
 print("\n" + "=" * 60)
 print("手动特征选择")
 print("=" * 60)
 
-# 这里可以修改特征数量
-manual_n_features = optimal_n_features  # 使用自动推荐的数量
-# manual_n_features = 10  # 如果想手动设置，取消注释并修改数字
+manual_n_features = optimal_n_features  
+# manual_n_features = 10  
 
 print(f"使用特征数量: {manual_n_features}")
 
-# 使用RFE进行特征选择
+
 rfe = RFE(
     estimator=rf_model,
     n_features_to_select=manual_n_features,
@@ -97,21 +88,20 @@ print(f"\n手动选中的特征 ({len(selected_features_manual)}个):")
 for i, feat in enumerate(selected_features_manual, 1):
     print(f"  {i}. {feat}")
 
-# 5. 评估性能（添加训练集和测试集对比）
+
 print("\n" + "=" * 60)
 print("性能评估（训练集 vs 测试集）")
 print("=" * 60)
 
 
-# 定义计算性能的函数
 def evaluate_model(model, X_train, y_train, X_test, y_test):
     """计算模型在训练集和测试集上的性能"""
-    # 训练集预测
+
     y_train_pred = model.predict(X_train)
     train_r2 = r2_score(y_train, y_train_pred)
     train_mse = mean_squared_error(y_train, y_train_pred)
 
-    # 测试集预测
+
     y_test_pred = model.predict(X_test)
     test_r2 = r2_score(y_test, y_test_pred)
     test_mse = mean_squared_error(y_test, y_test_pred)
@@ -125,7 +115,7 @@ def evaluate_model(model, X_train, y_train, X_test, y_test):
     }
 
 
-# 5.1 使用所有特征训练模型
+
 print("\n1. 使用所有特征:")
 rf_full = RandomForestRegressor(n_estimators=100, random_state=42)
 rf_full.fit(X_train, y_train)
@@ -135,7 +125,7 @@ print(f"   训练集 R²: {full_results['train_r2']:.4f}, MSE: {full_results['tr
 print(f"   测试集 R²: {full_results['test_r2']:.4f}, MSE: {full_results['test_mse']:.4f}")
 print(f"   训练集-测试集R²差异: {full_results['train_r2'] - full_results['test_r2']:.4f}")
 
-# 5.2 使用自动选择的特征训练模型
+
 print("\n2. 使用自动选择的特征:")
 X_train_auto = X_train[selected_features_auto]
 X_test_auto = X_test[selected_features_auto]
@@ -147,7 +137,7 @@ print(f"   训练集 R²: {auto_results['train_r2']:.4f}, MSE: {auto_results['tr
 print(f"   测试集 R²: {auto_results['test_r2']:.4f}, MSE: {auto_results['test_mse']:.4f}")
 print(f"   训练集-测试集R²差异: {auto_results['train_r2'] - auto_results['test_r2']:.4f}")
 
-# 5.3 使用手动选择的特征训练模型
+
 print("\n3. 使用手动选择的特征:")
 X_train_manual = X_train[selected_features_manual]
 X_test_manual = X_test[selected_features_manual]
@@ -159,7 +149,7 @@ print(f"   训练集 R²: {manual_results['train_r2']:.4f}, MSE: {manual_results
 print(f"   测试集 R²: {manual_results['test_r2']:.4f}, MSE: {manual_results['test_mse']:.4f}")
 print(f"   训练集-测试集R²差异: {manual_results['train_r2'] - manual_results['test_r2']:.4f}")
 
-# 5.4 性能对比表格
+
 print("\n" + "=" * 60)
 print("性能对比表格")
 print("=" * 60)
@@ -173,7 +163,7 @@ print(
 print(
     f"{'手动选择':<20} {manual_n_features:<10} {manual_results['train_r2']:<10.4f} {manual_results['train_mse']:<12.4f} {manual_results['test_r2']:<10.4f} {manual_results['test_mse']:<12.4f}")
 
-# 6. 特征排名
+
 print("\n" + "=" * 60)
 print("特征排名")
 print("=" * 60)
@@ -186,10 +176,10 @@ ranking_df = pd.DataFrame({
 
 print(ranking_df.to_string(index=False))
 
-# 7. 可视化（添加更多对比）
+
 plt.figure(figsize=(16, 12))
 
-# 子图1: 特征数量与R²关系
+
 plt.subplot(2, 3, 1)
 n_features_range = range(1, len(rfecv.cv_results_['mean_test_score']) + 1)
 plt.plot(n_features_range, rfecv.cv_results_['mean_test_score'], 'b-', linewidth=2)
@@ -206,7 +196,6 @@ plt.title(
 plt.legend()
 plt.grid(True, alpha=0.3)
 
-# 子图2: R²对比（训练集 vs 测试集）
 plt.subplot(2, 3, 2)
 methods = ['所有特征', '自动选择', '手动选择']
 train_r2 = [full_results['train_r2'], auto_results['train_r2'], manual_results['train_r2']]
@@ -224,14 +213,14 @@ plt.xticks(x, methods)
 plt.legend()
 plt.grid(True, alpha=0.3, axis='y')
 
-# 在柱子上添加数值
+
 for bars in [bars1, bars2]:
     for bar in bars:
         height = bar.get_height()
         plt.text(bar.get_x() + bar.get_width() / 2., height + 0.01,
                  f'{height:.3f}', ha='center', va='bottom', fontsize=9)
 
-# 子图3: MSE对比（训练集 vs 测试集）
+
 plt.subplot(2, 3, 3)
 train_mse = [full_results['train_mse'], auto_results['train_mse'], manual_results['train_mse']]
 test_mse = [full_results['test_mse'], auto_results['test_mse'], manual_results['test_mse']]
@@ -245,14 +234,14 @@ plt.xticks(x, methods)
 plt.legend()
 plt.grid(True, alpha=0.3, axis='y')
 
-# 在柱子上添加数值
+
 for bars in [bars3, bars4]:
     for bar in bars:
         height = bar.get_height()
         plt.text(bar.get_x() + bar.get_width() / 2., height + 0.01,
                  f'{height:.3f}', ha='center', va='bottom', fontsize=9)
 
-# 子图4: 实际vs预测（手动选择 - 测试集）
+
 plt.subplot(2, 3, 4)
 plt.scatter(y_test, manual_results['y_test_pred'], alpha=0.6, color='blue')
 min_val = min(y_test.min(), manual_results['y_test_pred'].min())
@@ -264,7 +253,6 @@ plt.title(f'实际值 vs 预测值 (手动选择-测试集)\nR^2={manual_results
 plt.legend()
 plt.grid(True, alpha=0.3)
 
-# 子图5: 特征数量对比
 plt.subplot(2, 3, 5)
 sizes = [X.shape[1], len(selected_features_auto), manual_n_features]
 labels = [f'原始特征\n{sizes[0]}个', f'自动选择\n{sizes[1]}个', f'手动选择\n{sizes[2]}个']
@@ -273,7 +261,7 @@ colors = ['lightgray', 'lightblue', 'lightcoral']
 plt.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=90, colors=colors)
 plt.title('特征数量对比')
 
-# 子图6: 训练集-测试集R²差异
+
 plt.subplot(2, 3, 6)
 r2_diff = [full_results['train_r2'] - full_results['test_r2'],
            auto_results['train_r2'] - auto_results['test_r2'],
@@ -285,7 +273,7 @@ plt.title('过拟合程度评估\n(差异越小越好)')
 plt.axhline(y=0, color='gray', linestyle='-', linewidth=0.5)
 plt.grid(True, alpha=0.3, axis='y')
 
-# 在柱子上添加数值
+
 for bar, diff in zip(bars_diff, r2_diff):
     height = bar.get_height()
     plt.text(bar.get_x() + bar.get_width() / 2., height + (0.01 if height >= 0 else -0.03),
@@ -295,19 +283,18 @@ plt.suptitle('RFE特征选择分析结果 (训练集 vs 测试集对比)', fonts
 plt.tight_layout()
 plt.show()
 
-# 8. 保存结果（添加训练集和测试集指标）
+
 print("\n" + "=" * 60)
 print("保存结果")
 print("=" * 60)
 
-# 保存选中的特征
+
 selected_df = pd.DataFrame({
     '序号': range(1, len(selected_features_manual) + 1),
     '特征名称': selected_features_manual,
     '排名': ranking_df[ranking_df['是否选中']]['排名'].values
 })
 
-# 保存性能对比（包含训练集和测试集）
 performance_df = pd.DataFrame({
     '方法': ['所有特征', '自动选择', '手动选择'],
     '特征数量': [X.shape[1], len(selected_features_auto), manual_n_features],
@@ -320,14 +307,13 @@ performance_df = pd.DataFrame({
                           manual_results['train_r2'] - manual_results['test_r2']]
 })
 
-# 保存到Excel
+
 output_path = r'C:\Users\LiangHuan\Desktop\原始数据、特征数据\RFE分析结果_完整版.xlsx'
 with pd.ExcelWriter(output_path) as writer:
     selected_df.to_excel(writer, sheet_name='选中特征', index=False)
     ranking_df.to_excel(writer, sheet_name='全部特征排名', index=False)
     performance_df.to_excel(writer, sheet_name='性能对比', index=False)
 
-    # 添加额外的信息表
     info_df = pd.DataFrame({
         '项目': ['数据集', '总特征数', '最优特征数(自动)', '手动选择特征数',
                  '训练集样本数', '测试集样本数', '随机种子'],
@@ -338,7 +324,7 @@ with pd.ExcelWriter(output_path) as writer:
 
 print(f"✓ 结果已保存到: {output_path}")
 
-# 9. 总结分析
+
 print("\n" + "=" * 60)
 print("分析完成！详细总结")
 print("=" * 60)
