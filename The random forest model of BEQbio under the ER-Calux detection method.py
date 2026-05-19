@@ -74,13 +74,13 @@ print(f"Final R² Train: {result_r2_train}")
 print(f"Final R² Test: {result_r2_test}")
 print(f"Final R² Adjusted: {result_r2_adjusted}")
 
-dump(multioutput_model, r'C:\Users\LiangHuan\Desktop\全部\BEQ-calux\best_model.joblib')  # 保存训练好的模型
-dump(scaler_X, r'C:\Users\LiangHuan\Desktop\全部\BEQ-calux\scaler_X.joblib')  # 保存输入特征的标准化器
-dump(scaler_y, r'C:\Users\LiangHuan\Desktop\全部\BEQ-calux\scaler_y.joblib')  # 保存目标变量的标准化器
+dump(multioutput_model, r'C:\Users\LiangHuan\Desktop\全部\BEQ-calux\best_model.joblib')  
+dump(scaler_X, r'C:\Users\LiangHuan\Desktop\全部\BEQ-calux\scaler_X.joblib')  # 
+dump(scaler_y, r'C:\Users\LiangHuan\Desktop\全部\BEQ-calux\scaler_y.joblib')  # 
 
 print("模型和标准化器已保存！")
 
-explainer = shap.TreeExplainer(multioutput_model.estimators_[0])  # 如果是多输出回归器，使用第一个子模型
+explainer = shap.TreeExplainer(multioutput_model.estimators_[0])  # 
 shap_values = explainer.shap_values(X_train_scaled)
 
 
